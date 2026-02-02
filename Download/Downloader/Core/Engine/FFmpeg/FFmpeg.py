@@ -36,23 +36,29 @@ class FFmpeg(QtCore.QObject):
         self._closeRequested = False
 
     def start(self, outputTarget: str, trimFrom: int = None, trimTo: int = None, transcode: bool = False, logLevel: LogLevel = LogLevel.INFO) -> None:
-        self.logger.info("Starting subprocess.")
-        self._process.start(
-            Config.PATH,
-            (
-                "-y",
-                "-hide_banner",
-                "-loglevel",
-                logLevel.value,
-                "-stats",
-                *(() if trimFrom == None else ("-ss", str(trimFrom))),
-                *(() if trimTo == None else ("-to", str(trimTo))),
-                "-i",
-                "pipe:0",
-                *self._getCodecParams(fileName=outputTarget, transcode=transcode),
-                outputTarget
-            )
+    self.logger.info("Starting subprocess.")
+    self._process.start(
+        Config.PATH,
+        (
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            logLevel.value,
+            "-stats",
+            "-analyzeduration",
+            "10000000",
+            "-probesize",
+            "100000000",
+            "-rtbufsize",
+            "100M",
+            *(() if trimFrom == None else ("-ss", str(trimFrom))),
+            *(() if trimTo == None else ("-to", str(trimTo))),
+            "-i",
+            "pipe:0",
+            *self._getCodecParams(fileName=outputTarget, transcode=transcode),
+            outputTarget
         )
+    )
 
     def write(self, data: bytes) -> int:
         return self._process.write(data)
